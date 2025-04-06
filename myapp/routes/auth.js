@@ -3,85 +3,82 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../models/db');
 
-
-// GET: Login-Seite
-router.get('/login', (req, res) => {
-  res.sendFile('login.html', { root: './views' });
-});
-
-// POST: Login
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
-
-    if (rows.length === 0) {
-      return res.send('❌ Benutzer nicht gefunden. <a href="/login">Zurück</a>');
-    }
-
-    const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-
-    if (isMatch) {
-      req.session.user = {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        gender: user.gender
-      };
-      return res.redirect('/profile');
-    } else {
-      return res.send('❌ Falsches Passwort. <a href="/login">Zurück</a>');
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).send('❌ Fehler beim Login.');
-  }
-});
-
-// GET: Registrierungsseite
+// Registrierung – Formular anzeigen
 router.get('/register', (req, res) => {
   res.sendFile('register.html', { root: './views' });
 });
 
-// POST: Registrierung
+// Registrierung – Verarbeitung
 router.post('/register', async (req, res) => {
-  const { username, password, name, gender, birthday } = req.body;
-
+  const { username, password } = req.body;
   try {
-    const [exists] = await db.query('SELECT id FROM users WHERE username = ?', [username]);
-    if (exists.length > 0) {
-      return res.send('❌ Benutzername existiert bereits. <a href="/register">Zurück</a>');
+    const [existing] = await db.query('SELECT id FROM users WHERE username = ?', [username]);
+    if (existing.length > 0) {
+      return res.send('Benutzername existiert bereits. <a href="/register">Zurück</a>');
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const [result] = await db.query(
+      'INSERT INTO users (username, password_hash) VALUES (?, ?)',
+      [username, passwordHash]
+    );
 
-    await db.query(`
-      INSERT INTO users (username, password_hash, name, gender, birthday)
-      VALUES (?, ?, ?, ?, ?)
-    `, [username, passwordHash, name, gender, birthday]);
-
-    return res.redirect('/login');
-  } catch (error) {
-    console.error(error);
-    return res.status(500).send('❌ Fehler bei der Registrierung.');
+    req.session.user = { id: result.insertId, username };
+    res.redirect('/profil.html');
+  } catch (err) {
+    console.error('❌ Fehler bei der Registrierung:', err);
+    res.status(500).send('Fehler bei der Registrierung');
   }
 });
 
-// GET: Logout
+// Login – Formular anzeigen
+router.get('/login', (req, res) => {
+  res.sendFile('login.html', { root: './views' });
+});
+
+// Login – Verarbeitung
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    const user = rows[0];
+
+    if (user && await bcrypt.compare(password, user.password_hash)) {
+      req.session.user = { id: user.id, username: user.username };
+      res.redirect('/profil.html');
+    } else {
+      res.send('❌ Ungültiger Benutzername oder Passwort. <a href="/login">Zurück</a>');
+    }
+  } catch (err) {
+    console.error('❌ Fehler beim Login:', err);
+    res.status(500).send('Fehler beim Login');
+  }
+});
+
+// Logout
 router.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login');
   });
 });
 
-// GET: Profilseite
-router.get('/profile', (req, res) => {
+// API: Profildaten
+router.get('/api/profil', async (req, res) => {
   if (!req.session.user) {
-    return res.redirect('/login');
+    return res.status(401).json({ error: 'Nicht eingeloggt' });
   }
-  res.sendFile('profil.html', { root: './views' });
+
+  try {
+    const [rows] = await db.query('SELECT username, name, gender, birthday, profile_picture FROM users WHERE id = ?', [req.session.user.id]);
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ error: 'Benutzer nicht gefunden' });
+    }
+  } catch (err) {
+    console.error('❌ Fehler beim Abrufen des Profils:', err);
+    res.status(500).json({ error: 'Fehler beim Laden des Profils' });
+  }
 });
 
 module.exports = router;

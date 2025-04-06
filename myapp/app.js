@@ -4,24 +4,30 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 
 const app = express();
+const PORT = 3000;
 
-// Middlewares
+// Middleware zum Parsen von POST-Daten
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Sessions
+// Session-Konfiguration
 app.use(session({
-  secret: 'supersecretkey',
+  secret: 'geheimes-super-passwort',
   resave: false,
   saveUninitialized: false
 }));
 
+// Statische Dateien aus dem views-Ordner
+app.use(express.static(path.join(__dirname, 'views')));
+
 // Routen
 app.use('/', authRoutes);
 
-// Serverstart
-const PORT = 3000;
+// Root-Route leitet auf /login weiter
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
+// Server starten
 app.listen(PORT, () => {
   console.log(`✅ Server läuft auf http://localhost:${PORT}`);
 });
