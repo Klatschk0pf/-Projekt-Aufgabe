@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Profil bearbeiten</title>
+</head>
+<body>
+  <h1>Profil bearbeiten</h1>
+  <form id="edit-form" enctype="multipart/form-data">
+    <label>Name: <input type="text" name="name" id="name"></label><br><br>
+    <label>Geschlecht:
+      <select name="gender" id="gender">
+        <option value="">Bitte wählen</option>
+        <option value="male">Männlich</option>
+        <option value="female">Weiblich</option>
+        <option value="other">Andere</option>
+      </select>
+    </label><br><br>
+    <label>Geburtstag: <input type="date" name="birthday" id="birthday"></label><br><br>
+    <label>Profilbild: <input type="file" name="profile_picture" id="profile_picture"></label><br><br>
+    <button type="submit">Speichern</button>
+  </form>
+  <p><a href="/profil.html">Zurück zum Profil</a></p>
+  <script>
+    // Aktuelle Nutzerdaten laden
+    fetch('/api/profil')
+      .then(res => res.json())
+      .then(user => {
+        document.getElementById('name').value = user.name || '';
+        document.getElementById('gender').value = user.gender || '';
+        document.getElementById('birthday').value = user.birthday || '';
+      })
+      .catch(err => console.error(err));
+    
+    document.getElementById('edit-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      
+      const formData = new FormData();
+      formData.append('name', document.getElementById('name').value);
+      formData.append('gender', document.getElementById('gender').value);
+      formData.append('birthday', document.getElementById('birthday').value);
+      
+      const fileInput = document.getElementById('profile_picture');
+      if (fileInput.files[0]) {
+        formData.append('profile_picture', fileInput.files[0]);
+      }
+      
+      try {
+        const res = await fetch('/api/profil-bearbeiten', {
+          method: 'POST',
+          body: formData
+        });
+        if (res.ok) {
+          alert('Profil aktualisiert!');
+          window.location.href = '/profil.html';
+        } else {
+          const errorText = await res.text();
+          alert('Fehler: ' + errorText);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Ein Fehler ist aufgetreten.');
+      }
+    });
+  </script>
+</body>
+</html>
