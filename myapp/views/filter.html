@@ -3,31 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <title>Filtereinstellungen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Basis-Stile */
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #f7f7f7;
+      color: #333;
+      line-height: 1.6;
+      padding-top: 60px;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 20px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-brand {
+      font-size: 1.5em;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .navbar-menu a {
+      margin-left: 15px;
+      color: #333;
+      text-decoration: none;
+      font-size: 1em;
+    }
+
+    .navbar-menu a:hover {
+      color: #007BFF;
+    }
+
+    /* Container */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #007BFF;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px 10px;
+        padding: 15px;
+      }
+
+      .navbar-menu a {
+        margin-left: 10px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Filtereinstellungen</h1>
-  <form id="filter-form">
-    <label for="gender">Geschlecht:</label>
-    <select id="gender" name="gender">
-      <option value="">Alle</option>
-      <option value="male">Männlich</option>
-      <option value="female">Weiblich</option>
-      <option value="other">Andere</option>
-    </select>
-    <br><br>
-    <label for="minAge">Mindestalter:</label>
-    <input type="number" id="minAge" name="minAge" min="18" max="99" value="18">
-    <br><br>
-    <label for="maxAge">Maximalalter:</label>
-    <input type="number" id="maxAge" name="maxAge" min="18" max="99" value="100">
-    <br><br>
-    <button type="submit">Filter speichern</button>
-  </form>
-  <p><a href="/people">Zur People-Seite</a></p>
-  <p><a href="/profil.html">Zurück zum Profil</a></p>
-  <p><a href="/matches">Matches & Likes</a></p>
-  <p><a href="/logout">Logout</a></p>
-  
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/profil.html" class="navbar-brand">MyApp</a>
+      <div class="navbar-menu">
+        <a href="/people">People</a>
+        <a href="/profil.html">Profil</a>
+        <a href="/matches">Matches & Likes</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Filtereinstellungen</h1>
+    <form id="filter-form">
+      <div class="form-group">
+        <label for="gender">Geschlecht:</label>
+        <select id="gender" name="gender">
+          <option value="">Alle</option>
+          <option value="male">Männlich</option>
+          <option value="female">Weiblich</option>
+          <option value="other">Andere</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="minAge">Mindestalter:</label>
+        <input type="number" id="minAge" name="minAge" min="18" max="99" value="18">
+      </div>
+
+      <div class="form-group">
+        <label for="maxAge">Maximalalter:</label>
+        <input type="number" id="maxAge" name="maxAge" min="18" max="99" value="100">
+      </div>
+
+      <button type="submit" class="button">Filter speichern</button>
+    </form>
+
+    <a class="button" href="/people">Zur People-Seite</a>
+    <a class="button" href="/profil.html">Zurück zum Profil</a>
+    <a class="button" href="/matches">Matches & Likes</a>
+    <a class="button" href="/logout">Logout</a>
+  </div>
+
   <script>
     document.getElementById('filter-form').addEventListener('submit', async function(e) {
       e.preventDefault();

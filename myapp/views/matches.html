@@ -2,70 +2,199 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deine Likes & Matches</title>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #f7f7f7;
+      color: #333;
+      line-height: 1.6;
+      padding-top: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 20px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-brand {
+      font-size: 1.5em;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .navbar-menu a {
+      margin-left: 15px;
+      color: #333;
+      text-decoration: none;
+      font-size: 1em;
+    }
+
+    .navbar-menu a:hover {
+      color: #007BFF;
+    }
+
+    /* Table Container */
+    .container {
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-top: 80px;
+      text-align: center;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 20px;
     }
+
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
       text-align: left;
     }
+
     th {
       background-color: #f2f2f2;
     }
+
     img {
       border-radius: 50%;
+    }
+
+    /* Button Box */
+    .button-box {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .button-box a.button {
+      display: block;
+      width: 100%;
+      max-width: 200px;
+      padding: 12px;
+      margin-top: 10px;
+      background-color: #007BFF;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .button-box a.button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .navbar-menu a {
+        margin-left: 10px;
+        font-size: 0.9em;
+      }
+
+      .container {
+        padding: 16px;
+      }
+
+      .button-box {
+        flex-direction: column;
+        gap: 12px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Deine Likes & Matches</h1>
-  
-  <h2>Nutzer, die dich geliked haben</h2>
-  <table id="likesReceivedTable">
-    <thead>
-      <tr>
-        <th>Profilbild</th>
-        <th>Name / Username</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Dynamische Inhalte -->
-    </tbody>
-  </table>
-  
-  <h2>Nutzer, die du geliked hast</h2>
-  <table id="likesGivenTable">
-    <thead>
-      <tr>
-        <th>Profilbild</th>
-        <th>Name / Username</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Dynamische Inhalte -->
-    </tbody>
-  </table>
-  
-  <h2>Deine Matches (gegenseitige Likes)</h2>
-  <table id="matchesTable">
-    <thead>
-      <tr>
-        <th>Profilbild</th>
-        <th>Name / Username</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Dynamische Inhalte -->
-    </tbody>
-  </table>
-  <p><a href="/profil.html">Zurück zum Profil</a></p>
-  <p><a href="/logout">Logout</a></p>
-  
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/profil.html" class="navbar-brand">MyApp</a>
+      <div class="navbar-menu">
+        <a href="/people">People</a>
+        <a href="/profil.html">Profil</a>
+        <a href="/matches">Matches & Likes</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Deine Likes & Matches</h1>
+
+    <h2>Nutzer, die dich geliked haben:</h2>
+    <table id="likesReceivedTable">
+      <thead>
+        <tr>
+          <th>Profilbild</th>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamische Inhalte -->
+      </tbody>
+    </table>
+
+    <h2>Nutzer, die du geliked hast:</h2>
+    <table id="likesGivenTable">
+      <thead>
+        <tr>
+          <th>Profilbild</th>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamische Inhalte -->
+      </tbody>
+    </table>
+
+    <h2>Deine Matches:</h2>
+    <table id="matchesTable">
+      <thead>
+        <tr>
+          <th>Profilbild</th>
+          <th>Name / Username</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamische Inhalte -->
+      </tbody>
+    </table>
+
+    <div class="button-box">
+      <a class="button" href="/profil.html">Zurück zum Profil</a>
+    </div>
+  </div>
+
   <script>
     async function loadLikesReceived() {
       try {
@@ -90,7 +219,7 @@
         alert('Fehler beim Laden der Likes Received: ' + err.message);
       }
     }
-    
+
     async function loadLikesGiven() {
       try {
         const res = await fetch('/api/likesGiven');
@@ -114,7 +243,7 @@
         alert('Fehler beim Laden der Likes Given: ' + err.message);
       }
     }
-    
+
     async function loadMatches() {
       try {
         const res = await fetch('/api/matches');
@@ -138,7 +267,7 @@
         alert('Fehler beim Laden der Matches: ' + err.message);
       }
     }
-    
+
     loadLikesReceived();
     loadLikesGiven();
     loadMatches();

@@ -1,40 +1,209 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>People</title>
   <style>
-    img {
-      border-radius: 8px;
-      margin-top: 10px;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    button {
-      padding: 10px;
-      margin: 5px;
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #f7f7f7;
+      color: #333;
+      line-height: 1.6;
+      padding-top: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 20px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-brand {
+      font-size: 1.5em;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .navbar-menu a {
+      margin-left: 15px;
+      color: #333;
+      text-decoration: none;
+      font-size: 1em;
+    }
+
+    .navbar-menu a:hover {
+      color: #007BFF;
+    }
+
+    /* Profile container */
+    #profile-container {
+      background-color: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      margin-top: 80px; /* Platz für die fixe Navbar */
+    }
+
+    img {
+      border-radius: 12px;
+      margin-top: 16px;
+      max-width: 100%;
+    }
+
+    p {
+      margin: 10px 0;
       font-size: 16px;
     }
-    #message {
+
+    /* Buttons */
+    #buttons {
       margin-top: 20px;
-      color: #cc0000;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    button {
+      background-color: #4f46e5;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #4338ca;
+    }
+
+    /* Button Box */
+    .button-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .button-box a.button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background-color: #007BFF;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .button-box a.button:hover {
+      background-color: #0056b3;
+    }
+
+    #message {
+      margin-top: 24px;
+      color: #b91c1c;
       font-weight: bold;
+      text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .navbar-menu a {
+        margin-left: 10px;
+        font-size: 0.9em;
+      }
+
+      #profile-container {
+        padding: 16px;
+      }
+
+      #buttons {
+        flex-direction: column;
+        gap: 12px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>People Seite</h1>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/profil.html" class="navbar-brand">MyApp</a>
+      <div class="navbar-menu">
+        <a href="/people">People</a>
+        <a href="/profil.html">Profil</a>
+        <a href="/matches">Matches & Likes</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <h1>People</h1>
+
   <div id="profile-container">
-    <!-- Hier wird das Profil dynamisch eingefügt -->
+    <!-- Dynamisches Profil -->
   </div>
+
   <div id="buttons">
     <button id="like-button">Like</button>
     <button id="dislike-button">Dislike</button>
   </div>
-  <p><a href="/filter">Filter ändern</a></p>
-  <p><a href="/profil.html">Zurück zum Profil</a></p>
+
+  <!-- Button Box -->
+  <div class="button-box">
+    <a class="button" href="/filter">Filter ändern</a>
+    <a class="button" href="/profil.html">Zurück zum Profil</a>
+  </div>
+
   <p id="message"></p>
 
   <script>
     let currentTargetUserId = null;
+
+    function berechneAlter(birthdayStr) {
+      if (!birthdayStr) return 'nicht angegeben';
+      const geburtstag = new Date(birthdayStr);
+      const heute = new Date();
+      let alter = heute.getFullYear() - geburtstag.getFullYear();
+      const m = heute.getMonth() - geburtstag.getMonth();
+      if (m < 0 || (m === 0 && heute.getDate() < geburtstag.getDate())) {
+        alter--;
+      }
+      return alter + ' Jahre';
+    }
 
     async function loadProfile() {
       const container = document.getElementById('profile-container');
@@ -44,15 +213,17 @@
         const res = await fetch('/api/people');
         if (!res.ok) throw new Error(await res.text());
         const user = await res.json();
-        console.log('Erhaltenes Profil:', user);
         currentTargetUserId = user.id;
+
+        const alter = berechneAlter(user.birthday);
+
         container.innerHTML = `
-          <h2>${user.username}</h2>
-          <p>Name: ${user.name || 'nicht angegeben'}</p>
-          <p>Geschlecht: ${user.gender || 'nicht angegeben'}</p>
-          <p>Geburtstag: ${user.birthday || 'nicht angegeben'}</p>
-          ${user.profile_picture ? `<img src="${user.profile_picture}" alt="Profilbild" width="200">` : ''}
+          <p><strong>Name:</strong> ${user.name || 'nicht angegeben'}</p>
+          <p><strong>Geschlecht:</strong> ${user.gender || 'nicht angegeben'}</p>
+          <p><strong>Alter:</strong> ${alter}</p>
+          ${user.profile_picture ? `<img src="${user.profile_picture}" alt="Profilbild">` : ''}
         `;
+        document.getElementById('buttons').style.display = 'flex';
       } catch (err) {
         container.innerHTML = '';
         currentTargetUserId = null;
@@ -70,7 +241,6 @@
         targetUserId: currentTargetUserId,
         like: likeValue
       };
-      console.log('Sende Match:', matchData);
       try {
         const res = await fetch('/api/match', {
           method: 'POST',
@@ -99,5 +269,6 @@
 
     loadProfile();
   </script>
+
 </body>
 </html>

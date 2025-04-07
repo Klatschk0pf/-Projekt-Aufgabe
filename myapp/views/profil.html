@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dein Profil</title>
   <style>
-    /* Reset */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    /* Basis-Stile */
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
       background: #f7f7f7;
@@ -21,7 +19,6 @@
       padding-top: 60px;
     }
 
-    /* Navbar */
     .navbar {
       background-color: #fff;
       border-bottom: 1px solid #ddd;
@@ -32,34 +29,43 @@
       left: 0;
       z-index: 1000;
     }
+
     .navbar-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     .navbar-brand {
       font-size: 1.5em;
       color: #333;
       text-decoration: none;
     }
+
     .navbar-menu a {
       margin-left: 15px;
       color: #333;
       text-decoration: none;
       font-size: 1em;
     }
+
     .navbar-menu a:hover {
       color: #007BFF;
     }
 
-    /* Container */
     .container {
       max-width: 600px;
       margin: 20px auto;
-      padding: 20px;
+      padding: 0 15px;
+    }
+
+    .profile-box,
+    .button-box {
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
     }
 
     h1 {
@@ -67,31 +73,40 @@
       margin-bottom: 20px;
       color: #007BFF;
     }
-    
+
     p {
       margin-bottom: 10px;
     }
-    
-    a.button {
-      display: inline-block;
-      padding: 10px 15px;
-      margin: 5px 0;
+
+    #profile-picture-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #profile-picture-container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .button-box a.button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
       background-color: #007BFF;
       color: #fff;
       text-decoration: none;
       border-radius: 4px;
+      font-size: 1em;
+      text-align: center;
     }
-    
-    a.button:hover {
+
+    .button-box a.button:hover {
       background-color: #0056b3;
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
-      .container {
-        margin: 20px 10px;
-        padding: 15px;
-      }
       .navbar-menu a {
         margin-left: 10px;
         font-size: 0.9em;
@@ -111,26 +126,26 @@
       </div>
     </div>
   </nav>
+
   <div class="container">
-    <h1>Willkommen, <span id="username"></span>!</h1>
-    <p><strong>Name:</strong> <span id="name"></span></p>
-    <p><strong>Geschlecht:</strong> <span id="gender"></span></p>
-    <p><strong>Geburtstag:</strong> <span id="birthday"></span></p>
-    <div id="profile-picture-container"></div>
-    <p>
+    <!-- Profil-Box -->
+    <div class="profile-box">
+      <h1>Willkommen, <span id="username"></span>!</h1>
+      <p><strong>Name:</strong> <span id="name"></span></p>
+      <p><strong>Geschlecht:</strong> <span id="gender"></span></p>
+      <p><strong>Geburtstag:</strong> <span id="birthday"></span></p>
+      <div id="profile-picture-container"></div>
+    </div>
+
+    <!-- Button-Box -->
+    <div class="button-box">
       <a class="button" href="/profil-bearbeiten.html">Profil bearbeiten</a>
-    </p>
-    <p>
       <a class="button" href="/filter">Filter Einstellungen</a>
-    </p>
-    <p>
       <a class="button" href="/matches">Matches & Likes</a>
-    </p>
-    <p>
       <a class="button" href="/logout">Logout</a>
-    </p>
+    </div>
   </div>
-  
+
   <script>
     fetch('/api/profil')
       .then(res => {
@@ -142,11 +157,11 @@
         document.getElementById('name').textContent = user.name || 'nicht angegeben';
         document.getElementById('gender').textContent = user.gender || 'nicht angegeben';
         document.getElementById('birthday').textContent = user.birthday ? new Date(user.birthday).toLocaleDateString() : 'nicht angegeben';
+
         if (user.profile_picture) {
           const img = document.createElement('img');
           img.src = user.profile_picture;
           img.alt = "Profilbild";
-          img.width = 200;
           document.getElementById('profile-picture-container').appendChild(img);
         }
       })
