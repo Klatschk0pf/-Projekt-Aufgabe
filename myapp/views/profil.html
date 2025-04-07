@@ -10,8 +10,12 @@
   <p>Geschlecht: <span id="gender"></span></p>
   <p>Geburtstag: <span id="birthday"></span></p>
   <div id="profile-picture-container"></div>
+  
+  <!-- Links zu weiteren Funktionen -->
   <p><a href="/profil-bearbeiten.html">Profil bearbeiten</a></p>
+  <p><a href="/filter">Filter Einstellungen</a></p>
   <p><a href="/logout">Logout</a></p>
+
   <script>
     fetch('/api/profil')
       .then(res => {

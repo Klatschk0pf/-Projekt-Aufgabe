@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Filter Einstellungen</title>
+</head>
+<body>
+  <h1>Filter Einstellungen</h1>
+  <form action="/setFilter" method="POST">
+    <label for="gender">Geschlecht:</label>
+    <select name="gender" id="gender">
+      <option value="">Alle</option>
+      <option value="male">Männlich</option>
+      <option value="female">Weiblich</option>
+      <option value="other">Andere</option>
+    </select>
+    <br><br>
+    <label for="minAge">Mindestalter:</label>
+    <input type="number" name="minAge" id="minAge" min="18" max="100" value="18">
+    <br><br>
+    <label for="maxAge">Maximalalter:</label>
+    <input type="number" name="maxAge" id="maxAge" min="18" max="100" value="100">
+    <br><br>
+    <button type="submit">Filter anwenden</button>
+  </form>
+  <p><a href="/people">Zur People Seite</a></p>
+  <p><a href="/profil.html">Zurück zum Profil</a></p>
+</body>
+</html>

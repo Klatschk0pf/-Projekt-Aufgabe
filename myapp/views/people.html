@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>People</title>
+</head>
+<body>
+  <h1>People Seite</h1>
+  <div id="profile-container">
+    <!-- Hier wird das Profil dynamisch eingefügt -->
+  </div>
+  <button id="like-button">Like</button>
+  <button id="dislike-button">Dislike</button>
+  <br>
+  <p><a href="/filter">Filter ändern</a></p>
+  <p><a href="/profil.html">Zurück zum Profil</a></p>
+  <script>
+    let currentTargetUserId = null;
+    
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/people');
+        if (!res.ok) throw new Error('Kein Profil gefunden');
+        const user = await res.json();
+        currentTargetUserId = user.id; // Speichere die ID des angezeigten Nutzers
+        const container = document.getElementById('profile-container');
+        container.innerHTML = `
+          <h2>${user.username}</h2>
+          <p>Name: ${user.name || 'nicht angegeben'}</p>
+          <p>Geschlecht: ${user.gender || 'nicht angegeben'}</p>
+          <p>Geburtstag: ${user.birthday || 'nicht angegeben'}</p>
+          ${user.profile_picture ? `<img src="${user.profile_picture}" alt="Profilbild" width="200">` : ''}
+        `;
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+    
+    async function sendMatch(likeValue) {
+      if (currentTargetUserId === null) return;
+      try {
+        const res = await fetch('/api/match', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            targetUserId: currentTargetUserId,
+            like: likeValue
+          })
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          alert('Fehler: ' + errorText);
+        }
+      } catch (err) {
+        alert('Fehler beim Senden der Bewertung: ' + err.message);
+      }
+    }
+    
+    document.getElementById('like-button').addEventListener('click', async () => {
+      await sendMatch(true);
+      await loadProfile();
+    });
+    
+    document.getElementById('dislike-button').addEventListener('click', async () => {
+      await sendMatch(false);
+      await loadProfile();
+    });
+    
+    // Beim Laden der Seite
+    loadProfile();
+  </script>
+</body>
+</html>

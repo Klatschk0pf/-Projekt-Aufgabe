@@ -126,4 +126,99 @@ router.post('/api/profil-bearbeiten', upload.single('profile_picture'), async (r
   }
 });
 
+// GET: Filterseite anzeigen
+router.get('/filter', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.sendFile('filter.html', { root: './views' });
+});
+
+// POST: Filtereinstellungen in Session speichern
+router.post('/setFilter', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const { gender, minAge, maxAge } = req.body;
+  req.session.filter = { gender, minAge: parseInt(minAge), maxAge: parseInt(maxAge) };
+  res.redirect('/people');
+});
+
+// GET: People-Seite anzeigen
+router.get('/people', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.sendFile('people.html', { root: './views' });
+});
+
+// API: Zufälliges Profil basierend auf Filtereinstellungen abrufen
+router.get('/api/people', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
+  
+  // Hole Filter aus der Session, falls vorhanden
+  let filter = req.session.filter || {};
+  
+  // Standardfilter, falls keiner gesetzt ist
+  const genderFilter = filter.gender || '';
+  const minAge = filter.minAge || 18;
+  const maxAge = filter.maxAge || 100;
+  
+  // Berechne Geburtsjahre basierend auf Alter (vereinfacht: aktuelles Jahr - Alter)
+  const currentYear = new Date().getFullYear();
+  const minYear = currentYear - maxAge;
+  const maxYear = currentYear - minAge;
+  
+  try {
+    // Suche einen zufälligen Nutzer (außer dem aktuellen)
+    let query = `SELECT id, username, name, gender, birthday, profile_picture 
+                 FROM users 
+                 WHERE id != ?`;
+    const params = [req.session.user.id];
+    
+    if (genderFilter) {
+      query += ' AND gender = ?';
+      params.push(genderFilter);
+    }
+    
+    query += ' AND YEAR(birthday) BETWEEN ? AND ? ORDER BY RAND() LIMIT 1';
+    params.push(minYear, maxYear);
+    
+    const [rows] = await db.query(query, params);
+    
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ error: 'Kein Profil gefunden, das dem Filter entspricht.' });
+    }
+  } catch (err) {
+    console.error('Fehler beim Laden des People-Profils:', err);
+    res.status(500).json({ error: 'Fehler beim Laden des People-Profils' });
+  }
+});
+
+// API: Like/Dislike (Match) speichern – jeder Like/Dislike wird nur einmal erfasst
+router.post('/api/match', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Nicht eingeloggt');
+  const { targetUserId, like } = req.body;
+  if (typeof targetUserId === 'undefined' || typeof like === 'undefined') {
+    return res.status(400).send('Ungültige Anfrage');
+  }
+  
+  try {
+    // Prüfe, ob bereits eine Bewertung existiert
+    const [existing] = await db.query(
+      'SELECT id FROM matches WHERE user_id = ? AND target_user_id = ?',
+      [req.session.user.id, targetUserId]
+    );
+    
+    if (existing.length > 0) {
+      return res.status(400).send('Du hast diesen Nutzer bereits bewertet.');
+    }
+    
+    await db.query(
+      'INSERT INTO matches (user_id, target_user_id, `like`) VALUES (?, ?, ?)',
+      [req.session.user.id, targetUserId, like ? 1 : 0]
+    );
+    res.status(200).send('Bewertung gespeichert');
+  } catch (err) {
+    console.error('Fehler beim Speichern der Bewertung:', err);
+    res.status(500).send('Fehler beim Speichern der Bewertung');
+  }
+});
+
 module.exports = router;

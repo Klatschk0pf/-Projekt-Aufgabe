@@ -4,7 +4,7 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 // Middleware zum Parsen von POST-Daten
 app.use(express.urlencoded({ extended: true }));
@@ -19,6 +19,8 @@ app.use(session({
 
 // Statische Dateien aus dem views-Ordner
 app.use(express.static(path.join(__dirname, 'views')));
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routen
 app.use('/', authRoutes);
