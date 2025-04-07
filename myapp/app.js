@@ -6,9 +6,14 @@ const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = 3001;
 
-// Middleware zum Parsen von POST-Daten
+// Middleware zum Parsen von JSON und URL-codierten POST-Daten
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Statische Dateien
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Session-Konfiguration
 app.use(session({
@@ -16,11 +21,6 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
-
-// Statische Dateien aus dem views-Ordner
-app.use(express.static(path.join(__dirname, 'views')));
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Routen
 app.use('/', authRoutes);

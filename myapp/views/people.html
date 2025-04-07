@@ -3,27 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <title>People</title>
+  <style>
+    img {
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    #message {
+      margin-top: 20px;
+      color: #cc0000;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <h1>People Seite</h1>
   <div id="profile-container">
     <!-- Hier wird das Profil dynamisch eingefügt -->
   </div>
-  <button id="like-button">Like</button>
-  <button id="dislike-button">Dislike</button>
-  <br>
+  <div id="buttons">
+    <button id="like-button">Like</button>
+    <button id="dislike-button">Dislike</button>
+  </div>
   <p><a href="/filter">Filter ändern</a></p>
   <p><a href="/profil.html">Zurück zum Profil</a></p>
+  <p id="message"></p>
+
   <script>
     let currentTargetUserId = null;
-    
+
     async function loadProfile() {
+      const container = document.getElementById('profile-container');
+      const message = document.getElementById('message');
+      message.textContent = '';
       try {
         const res = await fetch('/api/people');
-        if (!res.ok) throw new Error('Kein Profil gefunden');
+        if (!res.ok) throw new Error(await res.text());
         const user = await res.json();
-        currentTargetUserId = user.id; // Speichere die ID des angezeigten Nutzers
-        const container = document.getElementById('profile-container');
+        console.log('Erhaltenes Profil:', user);
+        currentTargetUserId = user.id;
         container.innerHTML = `
           <h2>${user.username}</h2>
           <p>Name: ${user.name || 'nicht angegeben'}</p>
@@ -32,42 +54,49 @@
           ${user.profile_picture ? `<img src="${user.profile_picture}" alt="Profilbild" width="200">` : ''}
         `;
       } catch (err) {
-        alert(err.message);
+        container.innerHTML = '';
+        currentTargetUserId = null;
+        message.textContent = err.message === 'Kein Profil gefunden, das dem Filter entspricht.'
+          ? 'Keine weiteren Profile mehr verfügbar.'
+          : 'Fehler: ' + err.message;
+        document.getElementById('buttons').style.display = 'none';
       }
     }
-    
+
     async function sendMatch(likeValue) {
       if (currentTargetUserId === null) return;
+      const message = document.getElementById('message');
+      const matchData = {
+        targetUserId: currentTargetUserId,
+        like: likeValue
+      };
+      console.log('Sende Match:', matchData);
       try {
         const res = await fetch('/api/match', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            targetUserId: currentTargetUserId,
-            like: likeValue
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(matchData)
         });
         if (!res.ok) {
           const errorText = await res.text();
-          alert('Fehler: ' + errorText);
+          message.textContent = 'Fehler: ' + errorText;
+          return;
         }
       } catch (err) {
-        alert('Fehler beim Senden der Bewertung: ' + err.message);
+        message.textContent = 'Fehler beim Senden: ' + err.message;
       }
     }
-    
+
     document.getElementById('like-button').addEventListener('click', async () => {
       await sendMatch(true);
       await loadProfile();
     });
-    
+
     document.getElementById('dislike-button').addEventListener('click', async () => {
       await sendMatch(false);
       await loadProfile();
     });
-    
+
     // Beim Laden der Seite
     loadProfile();
   </script>

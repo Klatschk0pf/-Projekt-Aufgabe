@@ -164,11 +164,12 @@ router.get('/api/people', async (req, res) => {
   const maxYear = currentYear - minAge;
   
   try {
-    // Suche einen zufälligen Nutzer (außer dem aktuellen)
+    // Suche einen zufälligen Nutzer (außer dem aktuellen) und der noch nicht bewertet wurde
     let query = `SELECT id, username, name, gender, birthday, profile_picture 
                  FROM users 
-                 WHERE id != ?`;
-    const params = [req.session.user.id];
+                 WHERE id != ?
+                 AND id NOT IN (SELECT target_user_id FROM matches WHERE user_id = ?)`; 
+    const params = [req.session.user.id, req.session.user.id];
     
     if (genderFilter) {
       query += ' AND gender = ?';
@@ -194,8 +195,16 @@ router.get('/api/people', async (req, res) => {
 // API: Like/Dislike (Match) speichern – jeder Like/Dislike wird nur einmal erfasst
 router.post('/api/match', async (req, res) => {
   if (!req.session.user) return res.status(401).send('Nicht eingeloggt');
-  const { targetUserId, like } = req.body;
-  if (typeof targetUserId === 'undefined' || typeof like === 'undefined') {
+  
+  console.log('Match Anfrage erhalten:', req.body);
+  
+  let { targetUserId, like } = req.body;
+  
+  // Wandelt targetUserId in eine Zahl um
+  targetUserId = Number(targetUserId);
+  
+  if (isNaN(targetUserId) || typeof like !== 'boolean') {
+    console.warn('Ungültige Match-Daten:', req.body);
     return res.status(400).send('Ungültige Anfrage');
   }
   
