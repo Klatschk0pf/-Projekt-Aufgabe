@@ -150,21 +150,18 @@ router.get('/people', (req, res) => {
 router.get('/api/people', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
   
-  // Hole Filter aus der Session, falls vorhanden
   let filter = req.session.filter || {};
   
-  // Standardfilter, falls keiner gesetzt ist
   const genderFilter = filter.gender || '';
   const minAge = filter.minAge || 18;
   const maxAge = filter.maxAge || 100;
   
-  // Berechne Geburtsjahre basierend auf Alter (vereinfacht: aktuelles Jahr - Alter)
   const currentYear = new Date().getFullYear();
   const minYear = currentYear - maxAge;
   const maxYear = currentYear - minAge;
   
   try {
-    // Suche einen zufälligen Nutzer (außer dem aktuellen) und der noch nicht bewertet wurde
+    // Suche einen zufälligen Nutzer (außer dem aktuellen) der noch nicht bewertet wurde
     let query = `SELECT id, username, name, gender, birthday, profile_picture 
                  FROM users 
                  WHERE id != ?
@@ -209,7 +206,6 @@ router.post('/api/match', async (req, res) => {
   }
   
   try {
-    // Prüfe, ob bereits eine Bewertung existiert
     const [existing] = await db.query(
       'SELECT id FROM matches WHERE user_id = ? AND target_user_id = ?',
       [req.session.user.id, targetUserId]
@@ -228,6 +224,32 @@ router.post('/api/match', async (req, res) => {
     console.error('Fehler beim Speichern der Bewertung:', err);
     res.status(500).send('Fehler beim Speichern der Bewertung');
   }
+});
+
+// API: Mutual Matches abrufen (Liste der Nutzer, die sich gegenseitig geliked haben)
+router.get('/api/matches', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
+  try {
+    const userId = req.session.user.id;
+    const query = `
+      SELECT u.id, u.username, u.name, u.profile_picture
+      FROM matches m1
+      JOIN matches m2 ON m1.target_user_id = m2.user_id
+      JOIN users u ON u.id = m1.target_user_id
+      WHERE m1.user_id = ? AND m2.target_user_id = ? AND m1.like = 1 AND m2.like = 1
+    `;
+    const [rows] = await db.query(query, [userId, userId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Fehler beim Abrufen der Matches:', err);
+    res.status(500).json({ error: 'Fehler beim Laden der Matches' });
+  }
+});
+
+// GET: Matches Seite anzeigen
+router.get('/matches', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.sendFile('matches.html', { root: './views' });
 });
 
 module.exports = router;

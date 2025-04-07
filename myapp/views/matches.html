@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Deine Matches</title>
+  <style>
+    .match-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .match-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .match-item img {
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Deine Matches</h1>
+  <ul id="matchList" class="match-list"></ul>
+  <p><a href="/profil.html">Zurück zum Profil</a></p>
+  
+  <script>
+    async function loadMatches() {
+      try {
+        const res = await fetch('/api/matches');
+        if (!res.ok) throw new Error(await res.text());
+        const matches = await res.json();
+        const list = document.getElementById('matchList');
+        list.innerHTML = '';
+        if (matches.length === 0) {
+          list.innerHTML = '<li>Keine Matches gefunden.</li>';
+        } else {
+          matches.forEach(match => {
+            const li = document.createElement('li');
+            li.className = 'match-item';
+            li.innerHTML = `
+              <img src="${match.profile_picture ? match.profile_picture : 'default-profile.png'}" alt="Profilbild" width="50" height="50">
+              <span>${match.name ? match.name : match.username}</span>
+            `;
+            list.appendChild(li);
+          });
+        }
+      } catch (err) {
+        alert('Fehler beim Laden der Matches: ' + err.message);
+      }
+    }
+    
+    loadMatches();
+  </script>
+</body>
+</html>
