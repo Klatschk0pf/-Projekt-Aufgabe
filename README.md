@@ -189,36 +189,42 @@
 
 Hier ist eine Übersicht der Ordner- und Dateistruktur meiner Tinda Anwendung:
 
+### Verzeichnisstruktur der Anwendung
+
+```plaintext
 myapp
-├── app.js                     # Hauptanwendungsdatei, die den Server startet und die Routen lädt.
+├── app.js                  # Hauptanwendungsdatei, die den Server startet und die Routen lädt.
 ├── bin
-│   └── www                    # Startskript für die Anwendung, das den Express-Server startet.
+│   └── www                 # Startskript für die Anwendung, das den Express-Server startet.
 ├── models
-│   └── db.js                  # Datenbankmodul, das für die Verbindung zur MySQL-Datenbank und die Durchführung von Abfragen zuständig ist.
-├── node_modules               # Enthält alle installierten Abhängigkeiten, die für das Projekt erforderlich sind (wurde aus der Doku entfernt).
-├── package-lock.json          # Speichert die genaue Version der installierten Node-Pakete und Abhängigkeiten.
-├── package.json               # Konfigurationsdatei für das Projekt, die alle Abhängigkeiten und Skripte definiert.
+│   └── db.js               # Datenbankmodul für Verbindung zur MySQL-Datenbank und Abfragen.
+├── node_modules            # Enthält alle installierten Abhängigkeiten (aus Doku entfernt).
+├── package-lock.json       # Speichert die genaue Version der installierten Pakete.
+├── package.json            # Konfigurationsdatei mit Abhängigkeiten und Skripten.
 ├── public
 │   ├── css
-│   │   └── style.css          # Wird nicht genuzt! Gab Probleme bei der Implementierung, deshalb ist in jeder HTML file das CSS definiert...
-│   ├── images                 # Ordner für Bilder, die in der Web-App verwendet werden (z.B. Profilbilder).
-│   ├── js                     # JavaScript-Dateien für Frontend-Funktionalitäten.
-│   └── uploads                # Ordner für hochgeladene Dateien wie Profilbilder.
-│       ├── test-1744010996112.jpg  # Beispiel eines hochgeladenen Profilbildes.
-│       ├── test-1744011712956.jpg  # Beispiel eines hochgeladenen Profilbildes.
-│       └── test-1744012202022.jpg  # Beispiel eines hochgeladenen Profilbildes.
+│   │   └── style.css       # Wird nicht genutzt – stattdessen CSS direkt in HTML definiert.
+│   ├── images              # Ordner für allgemeine Bilder.
+│   ├── js                  # JavaScript-Dateien für Frontend-Logik.
+│   └── uploads             # Hochgeladene Profilbilder.
+│       ├── test-1744010996112.jpg
+│       ├── test-1744011712956.jpg
+│       └── test-1744012202022.jpg
 ├── routes
-│   ├── auth.js                # Authentifizierungs-Routen (Registrierung, Login, Logout).
-│   ├── index.js               # Allgemeine Routen für die Web-App.
-│   └── users.js               # Routen, die mit Benutzerinformationen und -operationen wie Profilabfrage und -aktualisierung zu tun haben.
+│   ├── auth.js             # Routen für Registrierung, Login, Logout, Profilfunktionen.
+│   ├── index.js            # Allgemeine Routen (derzeit nicht verwendet).
+│   └── users.js            # Weitere Benutzer-bezogene Routen (optional).
 └── views
-    ├── filter.html            # HTML-Seite für die Filter-Einstellungen.
-    ├── login.html             # Login-Seite der Web-App.
-    ├── matches.html           # Seite, auf der die Matches angezeigt werden.
-    ├── people.html            # Seite, auf der Profile angezeigt werden, die auf das Nutzerprofil passen.
-    ├── profil-bearbeiten.html # Seite, auf der der Benutzer sein Profil bearbeiten kann.
-    ├── profil.html            # Seite, auf der das Profil des Benutzers angezeigt wird.
-    └── register.html          # Seite für die Registrierung eines neuen Benutzers.
+    ├── filter.html         # Seite zur Einstellung von Filterkriterien.
+    ├── login.html          # Login-Seite.
+    ├── matches.html        # Anzeige der Matches.
+    ├── people.html         # Swipe-Ansicht für andere Nutzer.
+    ├── profil-bearbeiten.html # Seite zum Bearbeiten des eigenen Profils.
+    ├── profil.html         # Anzeige des eigenen Profils.
+    └── register.html       # Registrierungsseite.
+```
+
+
 ### Erläuterung der Umsetzung
 
 #### Entwicklungsprozess
