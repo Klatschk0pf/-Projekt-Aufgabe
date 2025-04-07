@@ -2,50 +2,136 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Deine Matches</title>
+  <title>Deine Likes & Matches</title>
   <style>
-    .match-list {
-      list-style-type: none;
-      padding: 0;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
     }
-    .match-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
     }
-    .match-item img {
+    th {
+      background-color: #f2f2f2;
+    }
+    img {
       border-radius: 50%;
-      margin-right: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Deine Matches</h1>
-  <ul id="matchList" class="match-list"></ul>
+  <h1>Deine Likes & Matches</h1>
+  
+  <h2>Nutzer, die dich geliked haben</h2>
+  <table id="likesReceivedTable">
+    <thead>
+      <tr>
+        <th>Profilbild</th>
+        <th>Name / Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Dynamische Inhalte -->
+    </tbody>
+  </table>
+  
+  <h2>Nutzer, die du geliked hast</h2>
+  <table id="likesGivenTable">
+    <thead>
+      <tr>
+        <th>Profilbild</th>
+        <th>Name / Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Dynamische Inhalte -->
+    </tbody>
+  </table>
+  
+  <h2>Deine Matches (gegenseitige Likes)</h2>
+  <table id="matchesTable">
+    <thead>
+      <tr>
+        <th>Profilbild</th>
+        <th>Name / Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Dynamische Inhalte -->
+    </tbody>
+  </table>
   <p><a href="/profil.html">Zurück zum Profil</a></p>
+  <p><a href="/logout">Logout</a></p>
   
   <script>
+    async function loadLikesReceived() {
+      try {
+        const res = await fetch('/api/likesReceived');
+        if (!res.ok) throw new Error(await res.text());
+        const likes = await res.json();
+        const tbody = document.getElementById('likesReceivedTable').querySelector('tbody');
+        tbody.innerHTML = '';
+        if (likes.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2">Keine Likes erhalten.</td></tr>';
+        } else {
+          likes.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><img src="${user.profile_picture ? user.profile_picture : 'default-profile.png'}" alt="Profilbild" width="50" height="50"></td>
+              <td>${user.name ? user.name : user.username}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        alert('Fehler beim Laden der Likes Received: ' + err.message);
+      }
+    }
+    
+    async function loadLikesGiven() {
+      try {
+        const res = await fetch('/api/likesGiven');
+        if (!res.ok) throw new Error(await res.text());
+        const likes = await res.json();
+        const tbody = document.getElementById('likesGivenTable').querySelector('tbody');
+        tbody.innerHTML = '';
+        if (likes.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2">Keine Likes gegeben.</td></tr>';
+        } else {
+          likes.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><img src="${user.profile_picture ? user.profile_picture : 'default-profile.png'}" alt="Profilbild" width="50" height="50"></td>
+              <td>${user.name ? user.name : user.username}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        alert('Fehler beim Laden der Likes Given: ' + err.message);
+      }
+    }
+    
     async function loadMatches() {
       try {
         const res = await fetch('/api/matches');
         if (!res.ok) throw new Error(await res.text());
         const matches = await res.json();
-        const list = document.getElementById('matchList');
-        list.innerHTML = '';
+        const tbody = document.getElementById('matchesTable').querySelector('tbody');
+        tbody.innerHTML = '';
         if (matches.length === 0) {
-          list.innerHTML = '<li>Keine Matches gefunden.</li>';
+          tbody.innerHTML = '<tr><td colspan="2">Keine Matches gefunden.</td></tr>';
         } else {
-          matches.forEach(match => {
-            const li = document.createElement('li');
-            li.className = 'match-item';
-            li.innerHTML = `
-              <img src="${match.profile_picture ? match.profile_picture : 'default-profile.png'}" alt="Profilbild" width="50" height="50">
-              <span>${match.name ? match.name : match.username}</span>
+          matches.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><img src="${user.profile_picture ? user.profile_picture : 'default-profile.png'}" alt="Profilbild" width="50" height="50"></td>
+              <td>${user.name ? user.name : user.username}</td>
             `;
-            list.appendChild(li);
+            tbody.appendChild(tr);
           });
         }
       } catch (err) {
@@ -53,6 +139,8 @@
       }
     }
     
+    loadLikesReceived();
+    loadLikesGiven();
     loadMatches();
   </script>
 </body>

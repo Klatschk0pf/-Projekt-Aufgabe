@@ -196,10 +196,7 @@ router.post('/api/match', async (req, res) => {
   console.log('Match Anfrage erhalten:', req.body);
   
   let { targetUserId, like } = req.body;
-  
-  // Wandelt targetUserId in eine Zahl um
   targetUserId = Number(targetUserId);
-  
   if (isNaN(targetUserId) || typeof like !== 'boolean') {
     console.warn('Ungültige Match-Daten:', req.body);
     return res.status(400).send('Ungültige Anfrage');
@@ -210,11 +207,9 @@ router.post('/api/match', async (req, res) => {
       'SELECT id FROM matches WHERE user_id = ? AND target_user_id = ?',
       [req.session.user.id, targetUserId]
     );
-    
     if (existing.length > 0) {
       return res.status(400).send('Du hast diesen Nutzer bereits bewertet.');
     }
-    
     await db.query(
       'INSERT INTO matches (user_id, target_user_id, `like`) VALUES (?, ?, ?)',
       [req.session.user.id, targetUserId, like ? 1 : 0]
@@ -226,7 +221,45 @@ router.post('/api/match', async (req, res) => {
   }
 });
 
-// API: Mutual Matches abrufen (Liste der Nutzer, die sich gegenseitig geliked haben)
+// API: Likes Received – Nutzer, die dich geliked haben
+router.get('/api/likesReceived', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
+  try {
+    const userId = req.session.user.id;
+    const [rows] = await db.query(
+      `SELECT u.id, u.username, u.name, u.profile_picture
+       FROM matches m
+       JOIN users u ON m.user_id = u.id
+       WHERE m.target_user_id = ? AND m.like = 1`,
+       [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Fehler beim Abrufen der Likes Received:', err);
+    res.status(500).json({ error: 'Fehler beim Laden der Likes' });
+  }
+});
+
+// API: Likes Given – Nutzer, die du geliked hast
+router.get('/api/likesGiven', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
+  try {
+    const userId = req.session.user.id;
+    const [rows] = await db.query(
+      `SELECT u.id, u.username, u.name, u.profile_picture
+       FROM matches m
+       JOIN users u ON m.target_user_id = u.id
+       WHERE m.user_id = ? AND m.like = 1`,
+       [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Fehler beim Abrufen der Likes Given:', err);
+    res.status(500).json({ error: 'Fehler beim Laden der Likes Given' });
+  }
+});
+
+// API: Mutual Matches – Nutzer, bei denen ein gegenseitiges Like vorliegt
 router.get('/api/matches', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
   try {
