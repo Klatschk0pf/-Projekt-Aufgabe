@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const authRoutes = require('./routes/auth');
+const db = require('./models/db');
 
 const app = express();
 const PORT = 3001;
@@ -30,7 +31,14 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
-// Server starten
-app.listen(PORT, () => {
-  console.log(`✅ Server läuft auf http://localhost:${PORT}`);
-});
+// Erst die Datenbank initialisieren, dann Server starten
+async function startServer() {
+  await new Promise(resolve => setTimeout(resolve, 200)); // Kurzes Delay für saubere Logs
+  console.log('🚀 Initialisiere Datenbank...');
+  await db; // Wartet auf Ausführung in db.js
+  app.listen(PORT, () => {
+    console.log(`✅ Server läuft auf http://localhost:${PORT}`);
+  });
+}
+
+startServer();
