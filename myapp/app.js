@@ -8,6 +8,7 @@ const PORT = 3000;
 
 // Middleware zum Parsen von POST-Daten
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Session-Konfiguration
 app.use(session({
