@@ -76,19 +76,14 @@ router.get('/logout', (req, res) => {
 
 // API: Profildaten abrufen
 router.get('/api/profil', async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Nicht eingeloggt' });
-  }
+  if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
   try {
     const [rows] = await db.query(
       'SELECT username, name, gender, birthday, profile_picture FROM users WHERE id = ?',
       [req.session.user.id]
     );
-    if (rows.length > 0) {
-      res.json(rows[0]);
-    } else {
-      res.status(404).json({ error: 'Benutzer nicht gefunden' });
-    }
+    if (rows.length > 0) res.json(rows[0]);
+    else res.status(404).json({ error: 'Benutzer nicht gefunden' });
   } catch (err) {
     console.error('Fehler beim Abrufen des Profils:', err);
     res.status(500).json({ error: 'Fehler beim Laden des Profils' });
@@ -97,16 +92,12 @@ router.get('/api/profil', async (req, res) => {
 
 // API: Profil bearbeiten (inkl. Bild-Upload)
 router.post('/api/profil-bearbeiten', upload.single('profile_picture'), async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).send('Nicht eingeloggt');
-  }
-  
+  if (!req.session.user) return res.status(401).send('Nicht eingeloggt');
   const { name, gender, birthday } = req.body;
   let profilePictureUrl = null;
   if (req.file) {
     profilePictureUrl = '/uploads/' + req.file.filename;
   }
-  
   try {
     if (profilePictureUrl) {
       await db.query(
@@ -149,35 +140,27 @@ router.get('/people', (req, res) => {
 // API: Zufälliges Profil basierend auf Filtereinstellungen abrufen
 router.get('/api/people', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Nicht eingeloggt' });
-  
   let filter = req.session.filter || {};
-  
   const genderFilter = filter.gender || '';
   const minAge = filter.minAge || 18;
   const maxAge = filter.maxAge || 100;
-  
   const currentYear = new Date().getFullYear();
   const minYear = currentYear - maxAge;
   const maxYear = currentYear - minAge;
-  
   try {
     // Suche einen zufälligen Nutzer (außer dem aktuellen) der noch nicht bewertet wurde
     let query = `SELECT id, username, name, gender, birthday, profile_picture 
                  FROM users 
                  WHERE id != ?
-                 AND id NOT IN (SELECT target_user_id FROM matches WHERE user_id = ?)`; 
+                 AND id NOT IN (SELECT matched_user_id FROM matches WHERE user_id = ?)`;
     const params = [req.session.user.id, req.session.user.id];
-    
     if (genderFilter) {
       query += ' AND gender = ?';
       params.push(genderFilter);
     }
-    
     query += ' AND YEAR(birthday) BETWEEN ? AND ? ORDER BY RAND() LIMIT 1';
     params.push(minYear, maxYear);
-    
     const [rows] = await db.query(query, params);
-    
     if (rows.length > 0) {
       res.json(rows[0]);
     } else {
@@ -192,26 +175,23 @@ router.get('/api/people', async (req, res) => {
 // API: Like/Dislike (Match) speichern – jeder Like/Dislike wird nur einmal erfasst
 router.post('/api/match', async (req, res) => {
   if (!req.session.user) return res.status(401).send('Nicht eingeloggt');
-  
   console.log('Match Anfrage erhalten:', req.body);
-  
   let { targetUserId, like } = req.body;
   targetUserId = Number(targetUserId);
   if (isNaN(targetUserId) || typeof like !== 'boolean') {
     console.warn('Ungültige Match-Daten:', req.body);
     return res.status(400).send('Ungültige Anfrage');
   }
-  
   try {
     const [existing] = await db.query(
-      'SELECT id FROM matches WHERE user_id = ? AND target_user_id = ?',
+      'SELECT id FROM matches WHERE user_id = ? AND matched_user_id = ?',
       [req.session.user.id, targetUserId]
     );
     if (existing.length > 0) {
       return res.status(400).send('Du hast diesen Nutzer bereits bewertet.');
     }
     await db.query(
-      'INSERT INTO matches (user_id, target_user_id, `like`) VALUES (?, ?, ?)',
+      'INSERT INTO matches (user_id, matched_user_id, liked) VALUES (?, ?, ?)',
       [req.session.user.id, targetUserId, like ? 1 : 0]
     );
     res.status(200).send('Bewertung gespeichert');
@@ -230,13 +210,13 @@ router.get('/api/likesReceived', async (req, res) => {
       `SELECT u.id, u.username, u.name, u.profile_picture
        FROM matches m
        JOIN users u ON m.user_id = u.id
-       WHERE m.target_user_id = ? AND m.like = 1`,
+       WHERE m.matched_user_id = ? AND m.liked = 1`,
        [userId]
     );
     res.json(rows);
   } catch (err) {
     console.error('Fehler beim Abrufen der Likes Received:', err);
-    res.status(500).json({ error: 'Fehler beim Laden der Likes' });
+    res.status(500).json({ error: 'Fehler beim Laden der Likes Received' });
   }
 });
 
@@ -248,8 +228,8 @@ router.get('/api/likesGiven', async (req, res) => {
     const [rows] = await db.query(
       `SELECT u.id, u.username, u.name, u.profile_picture
        FROM matches m
-       JOIN users u ON m.target_user_id = u.id
-       WHERE m.user_id = ? AND m.like = 1`,
+       JOIN users u ON m.matched_user_id = u.id
+       WHERE m.user_id = ? AND m.liked = 1`,
        [userId]
     );
     res.json(rows);
@@ -267,9 +247,9 @@ router.get('/api/matches', async (req, res) => {
     const query = `
       SELECT u.id, u.username, u.name, u.profile_picture
       FROM matches m1
-      JOIN matches m2 ON m1.target_user_id = m2.user_id
-      JOIN users u ON u.id = m1.target_user_id
-      WHERE m1.user_id = ? AND m2.target_user_id = ? AND m1.like = 1 AND m2.like = 1
+      JOIN matches m2 ON m1.matched_user_id = m2.user_id
+      JOIN users u ON u.id = m1.matched_user_id
+      WHERE m1.user_id = ? AND m2.matched_user_id = ? AND m1.liked = 1 AND m2.liked = 1
     `;
     const [rows] = await db.query(query, [userId, userId]);
     res.json(rows);
