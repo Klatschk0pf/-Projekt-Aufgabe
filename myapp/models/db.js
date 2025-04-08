@@ -13,6 +13,7 @@ let pool;
 
 async function initializeDatabase() {
   try {
+    // Verbindung zur MySQL herstellen (ohne Datenbank)
     const connection = await mysql.createConnection({
       host: dbConfig.host,
       user: dbConfig.user,
@@ -30,7 +31,7 @@ async function initializeDatabase() {
       database: 'tinder_app'
     });
 
-    // Tabellen erstellen/prüfen
+    // Tabelle users erstellen/prüfen
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,24 +44,25 @@ async function initializeDatabase() {
       )
     `);
 
+    // Tabelle matches erstellen/prüfen (mit der Spalte "liked")
     await pool.query(`
       CREATE TABLE IF NOT EXISTS matches (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         matched_user_id INT NOT NULL,
+        liked TINYINT(1) NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (matched_user_id) REFERENCES users(id)
+        FOREIGN KEY (matched_user_id) REFERENCES users(id),
+        UNIQUE KEY unique_match (user_id, matched_user_id)
       )
     `);
 
     console.log('✅ Tabellen geprüft/erstellt');
 
-    // Prüfen, ob bereits Benutzer existieren
-    const [users] = await pool.query('SELECT COUNT(*) AS count FROM users');
-    
-    // Wenn keine Benutzer existieren, Dummy-Daten einfügen
-    if (users[0].count === 0) {
+    // Prüfen, ob bereits Benutzer existieren – ggf. Dummy-Daten einfügen
+    const [rows] = await pool.query('SELECT COUNT(*) AS count FROM users');
+    if (rows[0].count === 0) {
       console.log('⚠️ Keine Benutzer gefunden, füge Dummy-Daten hinzu...');
       
       const dummyUsers = [
@@ -125,30 +127,29 @@ async function initializeDatabase() {
         ['martha', '$2b$12$OG77W/Ehzdto2F5XgzdFrOm/XILQZG0./kLcMbJkUJsoow0kR1eWu', 'Martha', 'female', '1997-07-13', 'https://xsgames.co/randomusers/assets/avatars/female/29.jpg'],
         ['grace', '$2b$12$0y8aGqJ2pgojq0KYkdq.c.Bc7W2LoyWJWWlDblpWCMqJZ99Dl53gK', 'Grace', 'female', '1993-05-07', 'https://xsgames.co/randomusers/assets/avatars/female/30.jpg']
         ];
-
-        
-        for (const user of dummyUsers) {
-          const [existingUser] = await pool.query('SELECT id FROM users WHERE username = ?', [user[0]]);
-          if (existingUser.length === 0) {
-            // Benutzername existiert nicht, füge Benutzer hinzu
-            await pool.query('INSERT INTO users (username, password_hash, name, gender, birthday, profile_picture) VALUES (?, ?, ?, ?, ?, ?)', user);
-            console.log(`✅ Benutzer ${user[0]} hinzugefügt.`);
-          } else {
-            console.log(`⚠️ Benutzername ${user[0]} existiert bereits.`);
-          }
+      
+      for (const user of dummyUsers) {
+        const [existingUser] = await pool.query('SELECT id FROM users WHERE username = ?', [user[0]]);
+        if (existingUser.length === 0) {
+          await pool.query(
+            'INSERT INTO users (username, password_hash, name, gender, birthday, profile_picture) VALUES (?, ?, ?, ?, ?, ?)',
+            user
+          );
+          console.log(`✅ Benutzer ${user[0]} hinzugefügt.`);
+        } else {
+          console.log(`⚠️ Benutzername ${user[0]} existiert bereits.`);
         }
-      } else {
-        console.log('✅ Benutzer bereits vorhanden.');
       }
-  
-    } catch (error) {
-      console.error('❌ Fehler bei der Initialisierung der Datenbank:', error);
+    } else {
+      console.log('✅ Benutzer bereits vorhanden.');
     }
+  } catch (error) {
+    console.error('❌ Fehler bei der Initialisierung der Datenbank:', error);
   }
-  
-  initializeDatabase();
+}
 
-// Den Pool exportieren, damit du db.query(...) wie gewohnt nutzen kannst
+initializeDatabase();
+
 module.exports = {
   query: (...args) => pool.query(...args),
   getConnection: () => pool.getConnection()
